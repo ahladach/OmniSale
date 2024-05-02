@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}New Sale{% endblock title %}
+
+{% block content %}
+<div class="container">
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' and 'Product added to cart successfully.' not in message.message and 'Product removed from cart successfully.' not in message.message %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span class="message">{{ message }}</span>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span class="message">{{ message }}</span>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <br>                            
+    <h2 class="mb-4 text-left" style="color: black;"><i class="fas fa-dollar-sign mr-2"></i>New Sale</h2>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white"><i class="fas fa-search mr-2"></i><small>Search Products</small></div>
+        <div class="card-body">
+            <form method="get" action="{% url 'new-sale' %}">
+                <div class="form-row align-items-center">
+                    <div class="col-md-3">
+                        <label for="search_type" class="sr-only">Search Type:</label>
+                        <select class="form-control" id="search_type" name="search_type">
+                            <option value="">Select Search Type</option>
+                            <option value="category">Category</option>
+                            <option value="product">Product Name</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="search_item" class="sr-only">Search Item:</label>
+                        <input type="text" class="form-control" id="search_item" name="search_item" placeholder="Enter search item">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-dark btn-block"><i class="fas fa-search mr-2"></i>Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if products %}
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Units</th>
+                    <th>Available Quantity</th>
+                    <th>Quantity</th>
+                    <th>Price ($)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.product }}</td>
+                    <td>{{ product.brand }}</td>
+                    <td>{{ product.units }}</td>
+                    <td>{{ product.quantity }}</td>
+                    <td>
+                        <form method="post" action="{% url 'add_to_cart' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <div class="form-group mb-0">
+                                <input type="number" class="form-control quantity" name="quantity" min="0" max="{{ product.quantity }}" value="1">
+                            </div>
+                    </td>
+                    <td>
+                        <div class="form-group mb-0">
+                            <input type="text" class="form-control price" name="price" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter a valid price (e.g., 10.99)" required>
+                        </div>
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-dark btn-sm add-to-cart-btn" {% if not product.quantity %} disabled {% endif %}><i class="fas fa-cart-plus mr-2"></i>Add to Cart</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No products found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif search_item %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="text-center">No products found.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white"><i class="fas fa-shopping-cart mr-2"></i><small>Cart</small></div>
+        <div class="card-body">
+            <table class="table table-striped" id="cart-items">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>{{ item.product.product }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                        <td>{{ item.get_total_price|floatformat:2 }}</td>
+                        <td>
+                            <form method="post" action="{% url 'remove_from_cart' item.id %}" class="remove-item-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm remove-item"><i class="fas fa-trash-alt"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">Your cart is empty.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="row justify-content-between align-items-center mb-4">
+                <div class="col-md-6">
+                    <p class="font-weight-bold mb-0">Total Price: <span id="total-price">{{ total_price|floatformat:2 }}</span></p>
+                    <p class="font-weight-bold mb-0">GST (1.225%): <span id="gst-amount">{{ gst_amount|floatformat:2 }}</span></p>
+                    <p class="font-weight-bold mb-0">Discount: <span id="discount-amount">0.00</span></p>
+                    <p class="font-weight-bold mb-0">Total Payable: <span id="total-payable">{{ total_payable|floatformat:2 }}</span></p>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text font-weight-bold">Discount %</span>
+                        </div>
+                        <input type="number" class="form-control" id="discount-percentage" name="discount_percentage" min="0" max="100" value="0" placeholder="Discount %" onchange="updateTotalPayable()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white"><i class="fas fa-credit-card mr-2"></i><small>Payment Details</small></div>
+            <div class="card-body">
+                <div id="payment-methods-container">
+                    {% for payment_method in payment_methods %}
+                    <div class="payment-method card mb-3">
+                        <div class="card-body">
+                            <div class="row form-row align-items-center">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="payment_type_{{ forloop.counter }}" class="form-label font-weight-bold small">Payment Type:</label>
+                                        <select class="form-control form-control-sm payment-type" id="payment_type_{{ forloop.counter }}" name="payment_type_{{ forloop.counter }}">
+                                            <option value="cash" {% if payment_method.payment_type == 'cash' %}selected{% endif %}>Cash</option>
+                                            <option value="card" {% if payment_method.payment_type == 'card' %}selected{% endif %}>Card</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 card-details" style="display: {% if payment_method.payment_type == 'card' %}block{% else %}none{% endif %};">
+                                    <div class="form-group">
+                                        <label for="card_type_{{ forloop.counter }}" class="form-label font-weight-bold small">Card Type:</label>
+                                        <select class="form-control form-control-sm card-type" id="card_type_{{ forloop.counter }}" name="card_type_{{ forloop.counter }}">
+                                            <option value="master" {% if payment_method.card_type == 'master' %}selected{% endif %}>Master</option>
+                                            <option value="visa" {% if payment_method.card_type == 'visa' %}selected{% endif %}>Visa</option>
+                                            <option value="discover" {% if payment_method.card_type == 'discover' %}selected{% endif %}>Discover</option>
+                                            <option value="amex" {% if payment_method.card_type == 'amex' %}selected{% endif %}>American Express</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 card-details" style="display: {% if payment_method.payment_type == 'card' %}block{% else %}none{% endif %};">
+                                    <div class="form-group">
+                                        <label for="card_number_{{ forloop.counter }}" class="form-label font-weight-bold small">Card Number:</label>
+                                        <input type="text" class="form-control form-control-sm card-number" id="card_number_{{ forloop.counter }}" name="card_number_{{ forloop.counter }}" pattern="\d{16}" maxlength="16" value="{{ payment_method.card_number }}" title="Please enter a valid 16-digit card number">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="payment_amount_{{ forloop.counter }}" class="form-label font-weight-bold small">Amount:</label>
+                                        <input type="number" class="form-control form-control-sm payment-amount" id="payment_amount_{{ forloop.counter }}" name="payment_amount_{{ forloop.counter }}" min="0" step="0.01" value="{{ payment_method.payment_amount }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-1 text-center">
+                                    <button class="btn btn-danger btn-sm remove-payment mt-4"><i class="fas fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-right mb-3">
+                    <a href="#" class="btn btn-dark btn-sm add-payment"><i class="fas fa-plus mr-2"></i>Add Payment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white"><i class="fas fa-user-circle mr-2"></i><small>Customer Details</small></div>
+        <div class="card-body">
+            <form id="customer-details-form" method="post" action="{% url 'new-sale' %}">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}" class="font-weight-bold" style="font-size: 18px;"><small>Customer Name:</small></label>
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="{{ form.phone.id_for_label }}" class="font-weight-bold" style="font-size: 18px;"><small>Phone No:</small></label>
+                        {{ form.phone }}
+                        {{ form.phone.errors }}
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="font-weight-bold" style="font-size: 18px;"><small>Email:</small></label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.address.id_for_label }}" class="font-weight-bold" style="font-size: 18px;"><small>Address:</small></label>
+                    {{ form.address }}
+                    {{ form.address.errors }}
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-dark" id="complete-sale-btn"><i class="fas fa-check-circle mr-2"></i>Complete Sale</button>
+                    <a href="{% url 'sales-list' %}" class="btn btn-secondary"><i class="fas fa-times-circle mr-2"></i>Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="{% static 'js/jquery-3.2.1.slim.min.js' %}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Add event listener to toggle card details fields
+        $(document).on('change', '.payment-type', function() {
+            var $paymentMethod = $(this).closest('.payment-method');
+            var cardDetails = $paymentMethod.find('.card-details');
+            cardDetails.toggle(this.value === 'card');
+        });
+
+        // Add payment row
+        $('.add-payment').click(function(e) {
+            e.preventDefault();
+            // Clone the last payment row
+            var newRow = $('.payment-method:last').clone();
+            // Clear the input fields
+            newRow.find('input').val('');
+            // Append the cloned row to the container
+            $('#payment-methods-container').append(newRow);
+        });
+
+        // Remove payment row
+        $(document).on('click', '.remove-payment', function(e) {
+            e.preventDefault();
+            // Remove the clicked payment row
+            $(this).closest('.payment-method').remove();
+        });
+    });
+    function updateTotalPayable() {
+        var totalPrice = parseFloat($('#total-price').text());
+        var gstAmount = parseFloat($('#gst-amount').text());
+        var discountPercentage = parseFloat($('#discount-percentage').val());
+        var discountAmount = (totalPrice + gstAmount) * (discountPercentage / 100);
+        var totalPayable = totalPrice + gstAmount - discountAmount;
+        
+        $('#discount-amount').text(discountAmount.toFixed(2));
+        $('#total-payable').text(totalPayable.toFixed(2));
+    }
+</script>
+ 
+{% endblock content %}

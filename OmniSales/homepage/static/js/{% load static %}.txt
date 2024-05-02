@@ -1,0 +1,138 @@
+{% load static %}
+{% load crispy_forms_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/bootstrap.min.css' %}">
+    <!-- Main CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <title>OmniSale - Login</title>
+    <style>
+	body{
+	    background-image: url("{% static 'image/backgroundimage.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-color: #f8f9fa;
+	    display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+	}
+        /* Login Container */
+        .login-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            margin: 0 auto;
+            margin-top: 100px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            height: auto;
+        }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            width: 100%;
+            font-size: 18px;
+            font-weight: 500;
+            border-radius: 5px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+        .btn-link {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                {% if user.is_authenticated %}
+                <div class="login-container">
+                    <h2>You are already logged in, {{ request.user.username }}!</h2>
+                    <div class="text-center">
+                        <a class="btn btn-primary mb-3" href="{% url 'home' %}">Go back home</a>
+                        <a class="btn btn-danger" href="{% url 'logout' %}">Log Out</a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="login-container">
+                    <div class="login-header">
+                        <h2>Login to OmniSale System</h2>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.username|as_crispy_field }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.password|as_crispy_field }}
+                        </div>
+                        <div class="form-group">
+                            <label for="usertype" style="font-size: 13px;">UserType*</label>
+                            <select class="form-control" id="usertype" name="usertype" required>
+                                <option value="" selected>Select User Type</option>
+                                <option value="employee">Employee</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <a href="{% url 'password_reset' %}" class="btn btn-link">Forgot Password?</a>
+                            <button class="btn btn-primary btn-block" type="submit">Log In</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="{% static 'bootstrap/jquery-3.3.1.slim.min.js' %}"></script>
+    <script src="{% static 'bootstrap/popper.min.js' %}"></script>
+    <script src="{% static 'bootstrap/bootstrap.min.js' %}"></script>
+</body>
+</html>

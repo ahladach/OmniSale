@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} Add New Supplier {% endblock title %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <br>
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0" style="font-family: 'San Francisco', sans-serif; font-size: 1.2rem;">Add New Supplier</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+
+                            <div class="form-group">
+                                <label for="{{ form.name.id_for_label }}" style="font-family: 'San Francisco', sans-serif; font-size: 0.9rem;">Name</label>
+                                {{ form.name }}
+                                {{ form.name.errors }}
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.phone.id_for_label }}" maxlength="10" style="font-family: 'San Francisco', sans-serif; font-size: 0.9rem;">Phone Number</label>
+                                    {{ form.phone }}
+                                    {{ form.phone.errors }}
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="{{ form.email.id_for_label }}" style="font-family: 'San Francisco', sans-serif; font-size: 0.9rem;">Email</label>
+                                    {{ form.email }}
+                                    {{ form.email.errors }}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.address.id_for_label }}" style="font-family: 'San Francisco', sans-serif; font-size: 0.9rem;">Address</label>
+                                {{ form.address }}
+                                {{ form.address.errors }}
+                            </div>
+
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-primary" style="font-family: 'San Francisco', sans-serif; font-size: 0.9rem;">Save</button>
+                                <button type="reset" class="btn btn-secondary" style="font-family: 'San Francisco', sans-serif; font-size: 0.9rem;">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

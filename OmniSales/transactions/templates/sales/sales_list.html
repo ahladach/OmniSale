@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load custom_filters %}
+
+{% block title %}Sales List{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card mt-5">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Sales List</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <form method="GET" action="{% url 'sales-list' %}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="search" placeholder="Search by customer name or bill number" value="{{ request.GET.search }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="submit">Search</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <a class="btn btn-success" href="{% url 'new-sale' %}">New Outgoing Stock</a>
+                        </div>
+                    </div>
+
+                    {% if bills %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Bill No.</th>
+                                        <th>Customer</th>
+                                        <th>Stocks Sold</th>
+                                        <th>Quantity Sold</th>
+                                        <th>Total Sold Price</th>
+                                        <!--<th>Payment Status</th>-->
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in bills %}
+                                        <tr>
+                                            <td>{{ sale.billno }}</td>
+                                            <td>
+                                                {{ sale.name }}<br>
+                                                <small class="text-muted">Ph No: {{ sale.phone }}</small>
+                                            </td>
+                                            <td>
+                                                {% for item in sale.get_items_list %}
+                                                    {{ item.product }}<br>
+                                                {% endfor %}
+                                            </td>
+                                            <td>
+                                                {% for item in sale.get_items_list %}
+                                                    {{ item.quantity }}<br>
+                                                {% endfor %}
+                                            </td>
+                                            <td>${{ sale.get_total_payable|floatformat:2 }}</td>
+                                            <!--<td>
+                                                {% with sale_bill_details=sale.saledetailsbillno %}
+                                                {% if sale_bill_details.payment_amount < sale.get_total_payable %}
+                                                    <span class="text-danger">Incomplete</span>
+                                                    <br>
+                                                    <small class="text-muted">Expected Amount: ${{ sale.get_total_payable|floatformat:2 }}</small><br>
+                                                    <small class="text-muted">Actual Payment: ${{ sale_bill_details.payment_amount|floatformat:2 }}</small>
+                                                {% else %}
+                                                    <span class="text-success">Complete</span><br>
+                                                    <small class="text-muted">Payment Type: {{ sale_bill_details.payment_type }}</small><br>
+                                                    <small class="text-muted">Payment Amount: ${{ sale_bill_details.payment_amount }}</small><br>
+                                                    <small class="text-muted">Discount: {{ sale_bill_details.discount_percentage }}%</small>
+                                                {% endif %}
+                                                {% endwith %}
+                                            </td>-->
+                                            <td>{{ sale.time.date }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{% url 'sale-bill' sale.billno %}" class="btn btn-sm btn-outline-primary mr-2"><i class="fas fa-eye"></i> View Bill</a>
+                                                    <a href="{% url 'delete-sale' sale.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i> Delete Bill</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {% if is_paginated %}
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">&laquo; First</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center my-5">
+                            <h4>No sales records found.</h4>
+                            <p>Please try adding some sales.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

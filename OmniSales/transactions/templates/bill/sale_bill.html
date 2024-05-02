@@ -1,0 +1,100 @@
+{% extends 'bill/bill_base.html' %}
+{% load static %}
+
+{% block title %}Sale Bill No: {{ bill.billno }}{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mt-5">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Sale Bill No: {{ bill.billno }}</h4>
+                </div>
+                <div class="card-body" id="printArea">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% if bill.name %}
+                            <p><strong>Customer Name:</strong> {{ bill.name }}</p>
+                            {% endif %}
+                            {% if bill.phone %}
+                            <p><strong>Customer Phone:</strong> {{ bill.phone }}</p>
+                            {% endif %}
+                            {% if bill.email %}
+                            <p><strong>Customer Email:</strong> {{ bill.email }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>SL</th>
+                                    <th>PRODUCT</th>
+                                    <th>QUANTITY</th>
+                                    <th>UNIT PRICE</th>
+                                    <th>TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ item.product }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>{{ item.perprice }}</td>
+                                    <td>{{ item.totalprice }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>Payment Details:</h5>
+                            {% for payment in bill.salepayments.all %}
+                            <!--<div class="card mb-3">
+                                <div class="card-body">
+                                    {% with payment_details=payment.get_payment_details %}
+                                    <p><strong>Payment Type:</strong> {{ payment_details.payment_type }}</p>
+                                    <p><strong>Payment Amount:</strong> {{ payment_details.payment_amount }}</p>
+                                    {% if payment_details.payment_type == 'card' %}
+                                    <p><strong>Card Type:</strong> {{ payment_details.card_type }}</p>
+                                    <p><strong>Card Number:</strong> {{ payment_details.card_number }}</p>
+                                    <p><strong>Card Expiry:</strong> {{ payment_details.card_expiry }}</p>
+                                    {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>-->
+                        <div class="col-md-12">
+                            <p><strong>Total:</strong> {{ billdetails.total|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary" onclick="printpage('printArea')">Print</button>
+                            <!--<button type="submit" class="btn btn-success">Save Draft</button>-->
+                            <a href="{% url 'sales-list' %}" class="btn btn-secondary">Go Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function printpage(divName) {
+        var printContents = document.getElementById(divName).innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
+</script>
+{% endblock content %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}New Stock{% endblock title %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #cce6ff; /* A bit higher shade of blue */
+    }
+
+    .card-header {
+        padding: 25px;
+        border-bottom: none;
+        font-weight: bold;
+        color: #000000; /* Heading in black color */
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        text-align: left; /* Heading left aligned */
+    }
+    .card-header h4 {
+        color: #000000; /* Keep the heading "New Sale" in black color */
+    }
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        border: none;
+    }
+
+    .form-group label {
+        font-size: 16px;
+        font-weight: 600;
+        color: #000000; /* Black label text color */
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        padding: 12px;
+        border: none;
+        background-color: #f8f9fa; /* Light grey input background */
+        color: #000000; /* Black input text color */
+    }
+
+    .btn-primary {
+        background-color: #007bff; /* Simple blue button background */
+        border-color: #007bff; /* Simple blue button border */
+        font-weight: 600;
+        padding: 12px 30px;
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+        color: #ffffff; /* White button text color */
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        border-color: #0056b3;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">New Stock</h4>
+                </div>
+                <div class="card-body" style="padding: 30px;">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.category.id_for_label }}">Category</label>
+                                    {{ form.category|add_class:"form-control" }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.brand.id_for_label }}">Brand</label>
+                                    {{ form.brand|add_class:"form-control" }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.product.id_for_label }}">Name</label>
+                                    {{ form.product|add_class:"form-control" }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.units.id_for_label }}">Units</label>
+                                    {{ form.units|add_class:"form-control" }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.quantity.id_for_label }}">Quantity</label>
+                                    {{ form.quantity|add_class:"form-control" }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.threshold.id_for_label }}">Threshold</label>
+                                    {{ form.threshold|add_class:"form-control" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-primary">Add to Inventory</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

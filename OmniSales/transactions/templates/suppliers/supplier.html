@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ supplier.name }}'s Profile
+{% endblock %}
+
+{% block content %}
+    <br>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">{{ supplier.name }}</h4>
+                        <a href="{% url 'edit-supplier' supplier.pk %}" class="btn btn-info float-right">Edit Details</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Contact:</strong> {{ supplier.phone }}<br>
+                                    <strong>Email:</strong> {{ supplier.email }}<br>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Address:</strong><br>
+                                    {{ supplier.address|linebreaks }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Purchase History</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Bill No.</th>
+                                    <th>Stocks</th>
+                                    <th>Quantity</th>
+                                    <th>Total Price</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for purchase in bills %}
+                                    <tr>
+                                        <td rowspan="{{ purchase.purchaseitems.count }}">{{ purchase.billno }}</td>
+                                        {% for item in purchase.purchaseitems.all %}
+                                            {% if forloop.counter > 1 %}</tr><tr>{% endif %}
+                                            <td>{{ item.product.product }}</td>
+                                            <td>{{ item.quantity }}</td>
+                                            {% if forloop.first %}
+                                                <td rowspan="{{ purchase.purchaseitems.count }}">${{ purchase.get_total_price }}</td>
+                                                <td rowspan="{{ purchase.purchaseitems.count }}">{{ purchase.time.date }}</td>
+                                                <td rowspan="{{ purchase.purchaseitems.count }}">
+                                                    <a href="{% url 'purchase-bill' purchase.billno %}" class="btn btn-sm btn-secondary">View Bill</a>
+                                                    <a href="{% url 'delete-purchase' purchase.pk %}" class="btn btn-sm btn-danger">Delete Bill</a>
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <div class="text-center">
+                            {% if bills.has_other_pages %}
+                                {% if bills.has_previous %}
+                                    <a class="btn btn-outline-primary mb-4" href="?page=1">First</a>
+                                    <a class="btn btn-outline-primary mb-4" href="?page={{ bills.previous_page_number }}">Previous</a>
+                                {% endif %}
+
+                                {% for num in bills.paginator.page_range %}
+                                    {% if bills.number == num %}
+                                        <a class="btn btn-primary mb-4" href="?page={{ num }}">{{ num }}</a>
+                                    {% elif num > bills.number|add:'-3' and num < bills.number|add:'3' %}
+                                        <a class="btn btn-outline-primary mb-4" href="?page={{ num }}">{{ num }}</a>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if bills.has_next %}
+                                    <a class="btn btn-outline-primary mb-4" href="?page={{ bills.next_page_number }}">Next</a>
+                                    <a class="btn btn-outline-primary mb-4" href="?page={{ bills.paginator.num_pages }}">Last</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

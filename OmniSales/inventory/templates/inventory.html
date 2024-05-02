@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %} Inventory List {% endblock title %}
+
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row my-4">
+        <div class="col-md-8">
+            <h1 class="text-primary"><i class="fas fa-clipboard-list mr-2"></i><span style="color: black;">Inventory List</span></h1>
+        </div>
+        <div class="col-md-4 text-right">
+            <a class="btn btn-outline-success" href="{% url 'new-stock' %}"><i class="fas fa-plus mr-2"></i>Add New Stock</a>
+        </div>
+    </div>
+
+    {% if object_list %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Brand</th>
+                                <th>Product Name</th>
+                                <th>Product Code</th>
+                                <th>Quantity</th>
+                                <th>Units</th>
+                                <th>Threshold</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in object_list %}
+                            <tr>
+                                <td>{{ stock.category }}</td>
+                                <td>{{ stock.brand }}</td>
+                                <td>{{ stock.product }}</td>
+                                <td>{{ stock.code }}</td>
+                                <td>{{ stock.quantity }}</td>
+                                <td>{{ stock.units }}</td>
+                                <td>{{ stock.threshold }}</td>
+                                <td>
+                                    <a href="{% url 'edit-stock' stock.pk %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                    <a href="{% url 'delete-stock' stock.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12 d-flex justify-content-center">
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="row my-5">
+        <div class="col-md-12 text-center">
+            <h3 class="text-muted">The records are empty. Please try adding some.</h3>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}

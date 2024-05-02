@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #cce6ff;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        position: relative;
+        z-index: 1;
+        padding: 2rem;
+    }
+
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: bold;
+    }
+
+    .card-title {
+        color: #343a40;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        border-radius: 20px;
+    }
+
+    .btn-primary {
+        background-color: #343a40;
+        border-color: #343a40;
+    }
+
+    .btn-primary:hover {
+        background-color: #212529;
+        border-color: #212529;
+    }
+
+    .alert-custom {
+        background-color: #ffffff;
+        color: #ff0000;
+        border-color: #ffffff;
+    }
+</style>
+
+<div class="container">
+    <p class="text-left" style="font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif; font-size: 50px; color: #343a40; font-weight: bold;">Good Morning, {{ request.user.username }}!</p>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-inline justify-content-center mb-3">
+                        <div class="form-group mr-3">
+                            <label for="startDate" class="mr-2" style="font-weight: bold; font-size: 20px;">Start Date:</label>
+                            <input type="date" id="startDate" class="form-control" min="2024-01-01" max="2030-12-31" style="width: 200px;">
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="endDate" class="mr-2" style="font-weight: bold; font-size: 20px;">End Date:</label>
+                            <input type="date" id="endDate" class="form-control" min="2024-01-01" max="2030-12-31" style="width: 200px;">
+                        </div>
+                        <button id="updateChart" class="btn btn-primary" data-url="{% url 'get_sales_data' %}">Update</button>
+                    </div>
+                    <div id="container" style="position: relative; height:45vh; border: 1.2mm ridge #343a40; border-radius: 30px;" class="align-middle table-bordered">
+                        <canvas id="line-graph"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <p class="mb-0" style="color: #343a40; font-weight: bold; font-size: 24px;">Alerts</p>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_products %}
+                        <ul class="list-group">
+                            {% for product in low_stock_products %}
+                                <li class="list-group-item alert-custom">
+                                    <strong>{{ product.product }}</strong> is running out of stock. Quantity: {{ product.quantity }}, Threshold: {{ product.threshold }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No products are running out of stock.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <p class="mb-0" style="color: #343a40; font-weight: bold; font-size: 24px;">Top Sales Products of the Day</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in top_products %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="card-title">{{ product.product__product }}</p>
+                                        <p class="card-text">Total Quantity Sold: {{ product.total_quantity }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-md-12">
+                                <p>No sales data available for today.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <p class="mb-0" style="color: #343a40; font-weight: bold; font-size: 20px;">Products Sold on {{ selected_date|date:'Y-m-d' }}</p>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-3">
+                        <div class="form-group">
+                            <label for="date" style="font-weight: bold; font-size: 22px;">Select Date:</label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" style="width: 200px;">
+                        </div>
+                        <button type="submit" class="btn btn-primary">View</button>
+                    </form>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity Sold</th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products_sold %}
+                                <tr>
+                                    <td>{{ product.product__product }}</td>
+                                    <td>{{ product.total_quantity }}</td>
+                                    <td>{{ product.total_price |floatformat:2 }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3">No products sold on the selected date.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <form method="post" action="{% url 'generate_sales_report' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="selected_date" value="{{ selected_date|date:'Y-m-d' }}">
+                        <button type="submit" class="btn btn-primary">Generate Report</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    $(function() {
+        var lineConfig = {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Sales',
+                    backgroundColor: 'rgba(52, 58, 64, 0.8)',
+                    borderColor: 'rgba(52, 58, 64, 0.8)',
+                    data: {{ sales_data|safe }},
+                    fill: false
+                }],
+                labels: {{ sales_labels|safe }}
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Dates'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Sales'
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: {{ sales_max }}
+                    }
+                }
+            }
+        };
+
+        // Render the line graph on page load
+        var lineCtx = document.getElementById('line-graph').getContext('2d');
+        window.LineGraph = new Chart(lineCtx, lineConfig);
+
+        // Define the getCookie function
+        function getCookie(name) {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+
+        $('#updateChart').click(function() {
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+            var url = $(this).data('url');
+            var csrfToken = getCookie('csrftoken');
+            console.log('Start Date:', startDate);
+            console.log('End Date:', endDate);
+
+            var queryParams = new URLSearchParams({
+                start_date: startDate,
+                end_date: endDate
+            });
+
+            url += '?' + queryParams;
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetch Success:', data);
+                window.LineGraph.data.labels = data.sales_labels;
+                window.LineGraph.data.datasets[0].data = data.sales_values;
+                window.LineGraph.update();
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+            });
+        });
+    });
+</script>
+{% endblock content %}
